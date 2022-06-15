@@ -18,7 +18,7 @@ env:
 jobs:
   build_wheels:
     name: "Build TorchVision M1 wheels"
-    runs-on: macos-m1
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         py_vers: [ "3.8", "3.9", "3.10" ]
@@ -42,6 +42,7 @@ jobs:
           ENV_NAME: conda-env-${{ github.run_id }}
           PY_VERS: ${{ matrix.py_vers }}
         run: |
+          echo Github ref ${{ github.ref }}
           . ~/miniconda3/etc/profile.d/conda.sh
           # Needed for JPEG library detection as setup.py detects conda presence by running `shlex.which('conda')`
           export PATH=~/miniconda3/bin:$PATH
@@ -102,13 +103,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Set CHANNEL (only for tagged pushes)
-        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/') }}
-        run: |
-          # reference ends with an RC suffix
-          if [[ ${GITHUB_REF_NAME} = *-rc[0-9]* ]]; then
-            echo "CHANNEL=test" >> "$GITHUB_ENV"
-          fi
       - name: Set CHANNEL Release (for release)
         if: ${{ (github.event_name == 'pull_request' && startsWith(github.base_ref, 'release')) || startsWith(github.ref, 'release') }}
         run: |
